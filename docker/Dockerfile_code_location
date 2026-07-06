@@ -1,0 +1,18 @@
+FROM python:3.10-slim
+
+# Install Git
+RUN apt-get update && apt-get install -y git
+
+# Install dependencies to run gRPC server
+COPY ./docker/requirements.txt .
+RUN pip install -r requirements.txt
+
+# Add repository code
+WORKDIR /opt/dagster/app
+COPY ./airbnb_dagster/airbnb_dagster /opt/dagster/app/airbnb_dagster
+COPY ./airbnb_dbt /opt/dagster/app/airbnb_dbt
+
+# 
+EXPOSE 4000
+
+CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-m", "airbnb_dagster.definitions"]

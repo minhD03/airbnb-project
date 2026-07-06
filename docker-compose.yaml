@@ -1,0 +1,90 @@
+name: dagster
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: airbnb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d airbnb"]
+      interval: 10s
+      timeout: 8s
+      retries: 5
+
+  dagster_codeserver:
+    image: dagster-codeserver
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_code_location
+    container_name: dagster_codeserver
+    env_file:
+      - path: ./.env
+    expose:
+      - "4000"
+    ports:
+      - 4000:4000
+
+  dagster_webserver:
+    image: dagster-webserver
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_dagster
+    container_name: dagster_webserver
+    entrypoint: ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-w", "workspace.yaml"]
+    expose:
+      - "3000"
+    ports:
+      - 3000:3000
+    environment:
+      - DAGSTER_POSTGRES_USER=postgres
+      - DAGSTER_POSTGRES_PASSWORD=postgres
+      - DAGSTER_POSTGRES_DB=postgres
+      - SNOWFLAKE_ACCOUNT=$SNOWFLAKE_ACCOUNT
+      - SNOWFLAKE_DATABASE=$SNOWFLAKE_DATABASE
+      - SNOWFLAKE_PASSWORD=$SNOWFLAKE_PASSWORD
+      - SNOWFLAKE_ROLE=$SNOWFLAKE_ROLE
+      - SNOWFLAKE_SCHEMA=$SNOWFLAKE_SCHEMA
+      - SNOWFLAKE_USER=$SNOWFLAKE_USER
+      - SNOWFLAKE_WAREHOUSE=$SNOWFLAKE_WAREHOUSE
+      - DBT_TARGET=$DBT_TARGET
+    volumes: # Make docker client accessible so we can terminate containers from the webserver
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+      # - ./airbnb_dagster:/opt/dagster/app/airbnb_dagster
+      # - ./airbnb_dbt:/opt/dagster/app/airbnb_dbt
+    depends_on:
+      postgres:
+        condition: service_healthy
+      dagster_codeserver:
+        condition: service_started
+
+  dagster-daemon:
+    image: dagster-daemon
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_dagster
+    container_name: dagster_daemon
+    entrypoint: ["dagster-daemon", "run"]
+    environment:
+      DAGSTER_POSTGRES_USER: "postgres"
+      DAGSTER_POSTGRES_PASSWORD: "postgres"
+      DAGSTER_POSTGRES_DB: "postgres"
+    volumes: # Make docker client accessible so we can launch containers using host docker
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+      # - ./airbnb_dagster:/opt/dagster/app/airbnb_dagster
+      # - ./airbnb_dbt:/opt/dagster/app/airbnb_dbt
+    depends_on:
+      postgres:
+        condition: service_healthy
+      dagster_codeserver:
+        condition: service_started
+
+volumes:
+  postgres-db-volume:

@@ -1,0 +1,8 @@
+dagster
+dagster-graphql
+dagster-webserver
+dagster-postgres
+dagster-docker
+dagster-dbt
+dbt-core
+dbt-snowflake

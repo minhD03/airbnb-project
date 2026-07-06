@@ -1,0 +1,14 @@
+FROM python:3.10-slim
+
+# Install dependencies
+COPY ./docker/requirements.txt .
+RUN pip install -r requirements.txt
+
+# Set the DAGSTER_HOME and copy dagster instance and workspace.yaml file there
+ENV DAGSTER_HOME=/opt/dagster/dagster_home/
+RUN mkdir -p $DAGSTER_HOME
+
+# Copy dagster.yaml and workspace.yaml to $DAGSTER_HOME
+COPY ./docker/dagster.yaml ./docker/workspace.yaml $DAGSTER_HOME
+
+WORKDIR $DAGSTER_HOME
