@@ -1,12 +1,22 @@
 # Airbnb Project:
 
-This project is my use of Dagster to build Data Orchestration, a cloud native data platform that handles from building, observing to delivering. Furthermore, this Data Orchestrator platform is utilized for the use of both human and AI agents to rely on. Unlike Apache Airflow, Dagster is focused more on data assets (instead of only tasks) with better local development, testing and debugging, followed by full supports for entire data life cycles. Therefore, Dagster is more suitable for modern data stack.
-## 1.Overview
+## Table of Contents
+
+- [1) Introduction](#1-introduction)
+- [2) Datasets](#2-datasets)
+- [3) Code Structure](#3-code-structure)
+- [4) Orchestration](#4-orchestration)
+- [5) User Guide](#5-user-guide)
+  
+## 1) Introduction:
 ![alt text](https://github.com/minhD03/airbnb-project/blob/60d73f852733d80819e778f56af06856d1d01d91/images/diagram2.png)
+
+
+This project is my use of Dagster to build Data Orchestration, a cloud native data platform that handles from building, observing to delivering. Furthermore, this Data Orchestrator platform is utilized for the use of both human and AI agents to rely on. Unlike Apache Airflow, Dagster is focused more on data assets (instead of only tasks) with better local development, testing and debugging, followed by full supports for entire data life cycles. Therefore, Dagster is more suitable for modern data stack.
 
 The datasets will be extracted from [Here](dbtlearn.s3.amazonaws.com) using dbt into my Snowflake Database in Raw schema for starter. Then, I will transform the datasets before visualizing it in Power BI.
 
-## 2.Datasets:
+## 2) Datasets:
 ![alt text](https://github.com/minhD03/airbnb-project/blob/60d73f852733d80819e778f56af06856d1d01d91/images/diagram1.png)
 
 The datasets contains 4 files:
@@ -15,7 +25,25 @@ The datasets contains 4 files:
 - Hosts: The room host information.
 - Full Moon Dates: The list of Full Moon days. I will use this to analyze if it affect the rent behaviour or not.
 
-## 3. Orchestration:
+## 3) Code Structure:
+```
+.
+├── docker-compose.yaml
+├── airbnb_dagster/
+│   └── airbnb_dagster          # manage the dag flow.
+│        ├── assets.py          # asset the required condition.
+│        ├── schedule.py        # schedule the materialization.
+│        ├── project.py         # set up project path.
+│        └── definitions.py     # main control file
+├── airbnb_dbt/
+│   ├── analyses                # my full moon analyze.
+│   ├── models                  # main sql processing.
+│   └── macros                  # check for anomalies
+└── docker/                     # main docker set up.
+
+```
+
+## 4) Orchestration:
 ![alt text](https://github.com/minhD03/airbnb-project/blob/60d73f852733d80819e778f56af06856d1d01d91/images/pic12.png)
 
 This is my pipeline used in this project. These are the actions that I have taken:
@@ -30,7 +58,8 @@ This is my pipeline used in this project. These are the actions that I have take
     - Materialized Views: Database objects that use pre-computed queries to merge the real-time fressness of a view with fast read performance.
     - Emphemeral: Short-lived transformation scripts injected as Common Table Expressions (CTEs) into queries. These will never be written to database. After confirming my transformation pipeline worked correctly, I set the source queries to be emphemeral.
 - The results can be seen in [Images](https://github.com/minhD03/airbnb-project/tree/60d73f852733d80819e778f56af06856d1d01d91/images)
-## 4. Set up:
+  
+## 5. User guide:
 
 ### a. Create user for dbt:
 First, create:
