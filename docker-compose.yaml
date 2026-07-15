@@ -1,4 +1,4 @@
-name: dagster
+name: airbnb-pipeline
 services:
   postgres:
     image: postgres:13
